@@ -225,3 +225,30 @@
         (ok true)
     )
 )
+
+;; Read-only Functions
+
+;; Retrieves detailed information about a specific proposal
+(define-read-only (get-proposal (proposal-id uint))
+    (map-get? proposals proposal-id)
+)
+
+;; Retrieves member information for a given address
+(define-read-only (get-member (address principal))
+    (map-get? members address)
+)
+
+;; Retrieves voting record for a specific proposal and voter
+(define-read-only (get-vote (proposal-id uint) (voter principal))
+    (map-get? votes {proposal-id: proposal-id, voter: voter})
+)
+
+;; Retrieves current DAO statistics and configuration
+(define-read-only (get-dao-info)
+    {
+        total-members: (var-get total-members),
+        treasury-balance: (var-get treasury-balance),
+        minimum-membership-fee: (var-get minimum-membership-fee),
+        quorum-threshold: (var-get quorum-threshold)
+    }
+)
