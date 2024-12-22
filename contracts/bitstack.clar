@@ -198,3 +198,30 @@
         (ok true)
     )
 )
+
+;; Executes a passed proposal, transferring funds to the
+(define-public (execute-proposal (proposal-id uint))
+    (let
+        (
+            (proposal (unwrap! (map-get? proposals proposal-id) ERR-PROPOSAL-NOT-FOUND))
+            (total-votes (get total-votes proposal))
+            (yes-votes (get yes-votes proposal))
+        )
+        (asserts! (>= block-height (get expires-at proposal)) ERR-PROPOSAL-EXPIRED)
+        (asserts! (not (get executed proposal)) ERR-PROPOSAL-EXECUTED)
+        (asserts! (>= (* yes-votes u100) (* total-votes (var-get quorum-threshold))) ERR-INSUFFICIENT-QUORUM)
+        
+        (try! (as-contract (stx-transfer? (get amount proposal) tx-sender (get recipient proposal))))
+        
+        (map-set proposals proposal-id
+            (merge proposal
+                {
+                    executed: true
+                }
+            )
+        )
+        
+        (var-set treasury-balance (- (var-get treasury-balance) (get amount proposal)))
+        (ok true)
+    )
+)
