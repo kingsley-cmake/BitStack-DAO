@@ -167,13 +167,17 @@
             (proposal (unwrap! (map-get? proposals proposal-id) ERR-PROPOSAL-NOT-FOUND))
             (member-data (unwrap! (map-get? members tx-sender) ERR-NOT-MEMBER))
             (voting-power (get voting-power member-data))
+            ;; Validate the vote-bool input by explicitly checking it
+            (validated-vote (if (is-eq vote-bool true) 
+                              true 
+                              false))
         )
         (asserts! (< block-height (get expires-at proposal)) ERR-PROPOSAL-EXPIRED)
         (asserts! (is-none (map-get? votes {proposal-id: proposal-id, voter: tx-sender})) ERR-ALREADY-VOTED)
         
         (map-set votes {proposal-id: proposal-id, voter: tx-sender}
             {
-                vote: vote-bool,
+                vote: validated-vote,
                 power: voting-power
             }
         )
@@ -181,8 +185,8 @@
         (map-set proposals proposal-id
             (merge proposal
                 {
-                    yes-votes: (if vote-bool (+ (get yes-votes proposal) voting-power) (get yes-votes proposal)),
-                    no-votes: (if vote-bool (get no-votes proposal) (+ (get no-votes proposal) voting-power)),
+                    yes-votes: (if validated-vote (+ (get yes-votes proposal) voting-power) (get yes-votes proposal)),
+                    no-votes: (if validated-vote (get no-votes proposal) (+ (get no-votes proposal) voting-power)),
                     total-votes: (+ (get total-votes proposal) voting-power)
                 }
             )
