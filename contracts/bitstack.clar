@@ -92,3 +92,70 @@
 (define-private (calculate-voting-power (balance uint))
     (/ balance u1000000)
 )
+
+;; Public Functions
+
+;; Allows a new member to join the DAO by staking STX
+(define-public (join-dao)
+    (let 
+        (
+            (membership-fee (var-get minimum-membership-fee))
+        )
+        (asserts! (not (is-member tx-sender)) ERR-ALREADY-MEMBER)
+        (try! (stx-transfer? membership-fee tx-sender (as-contract tx-sender)))
+        
+        (map-set members tx-sender
+            {
+                joined-at: block-height,
+                stx-balance: membership-fee,
+                voting-power: (calculate-voting-power membership-fee),
+                proposals-created: u0,
+                last-vote-height: u0
+            }
+        )
+        
+        (var-set total-members (+ (var-get total-members) u1))
+        (var-set treasury-balance (+ (var-get treasury-balance) membership-fee))
+        (ok true)
+    )
+)
+
+;; Creates a new proposal for the DAO
+(define-public (create-proposal (title (string-ascii 50)) (description (string-ascii 500)) (amount uint) (recipient principal))
+    (let
+        (
+            (member-data (unwrap! (map-get? members tx-sender) ERR-NOT-MEMBER))
+            (proposal-id (var-get next-proposal-id))
+        )
+        (asserts! (<= amount (var-get treasury-balance)) ERR-INSUFFICIENT-BALANCE)
+        (asserts! (> (len title) u0) ERR-INVALID-AMOUNT)
+        (asserts! (> (len description) u0) ERR-INVALID-AMOUNT)
+        (asserts! (is-eq recipient recipient) ERR-INVALID-AMOUNT)
+        
+        (map-set proposals proposal-id
+            {
+                creator: tx-sender,
+                title: title,
+                description: description,
+                amount: amount,
+                recipient: recipient,
+                created-at: block-height,
+                expires-at: (+ block-height (var-get proposal-duration)),
+                yes-votes: u0,
+                no-votes: u0,
+                executed: false,
+                total-votes: u0
+            }
+        )
+        
+        (map-set members tx-sender
+            (merge member-data 
+                {
+                    proposals-created: (+ (get proposals-created member-data) u1)
+                }
+            )
+        )
+        (var-set next-proposal-id (+ proposal-id u1))
+        (ok proposal-id)
+    )
+)
