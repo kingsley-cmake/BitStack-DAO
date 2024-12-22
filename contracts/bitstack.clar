@@ -32,3 +32,34 @@
 (define-data-var total-members uint u0)                ;; Current number of DAO members
 (define-data-var treasury-balance uint u0)             ;; Total STX held by the DAO
 (define-data-var next-proposal-id uint u0)             ;; Auto-incrementing proposal counter
+
+;; Data Maps
+;; Member Information
+;; Tracks individual member details and participation metrics
+(define-map members principal 
+    {
+        joined-at: uint,           ;; Block height when member joined
+        stx-balance: uint,         ;; Member's staked STX balance
+        voting-power: uint,        ;; Calculated voting power based on stake
+        proposals-created: uint,   ;; Number of proposals created by member
+        last-vote-height: uint     ;; Block height of member's last vote
+    }
+)
+
+;; Proposal Details
+;; Stores all information about proposals including their current state
+(define-map proposals uint 
+    {
+        creator: principal,                ;; Address that created the proposal
+        title: (string-ascii 50),         ;; Short proposal title
+        description: (string-ascii 500),   ;; Detailed proposal description
+        amount: uint,                      ;; STX amount requested
+        recipient: principal,              ;; Recipient of funds if approved
+        created-at: uint,                  ;; Block height at creation
+        expires-at: uint,                  ;; Block height when voting ends
+        yes-votes: uint,                   ;; Total yes votes received
+        no-votes: uint,                    ;; Total no votes received
+        executed: bool,                    ;; Whether proposal has been executed
+        total-votes: uint                  ;; Total votes cast
+    }
+)
