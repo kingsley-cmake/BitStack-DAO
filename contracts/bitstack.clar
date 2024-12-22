@@ -23,3 +23,12 @@
 (define-constant ERR-INVALID-AMOUNT (err u109))       ;; Invalid amount specified
 (define-constant ERR-UNAUTHORIZED (err u110))         ;; User not authorized for operation
 (define-constant ERR-PROPOSAL-EXECUTED (err u111))    ;; Proposal has already been executed
+
+;; State Variables
+;; Core configuration and state tracking for the DAO
+(define-data-var minimum-membership-fee uint u1000000) ;; Minimum STX required to join (in microSTX)
+(define-data-var proposal-duration uint u144)          ;; Proposal voting window in blocks (~1 day)
+(define-data-var quorum-threshold uint u51)            ;; Minimum percentage of votes required (51%)
+(define-data-var total-members uint u0)                ;; Current number of DAO members
+(define-data-var treasury-balance uint u0)             ;; Total STX held by the DAO
+(define-data-var next-proposal-id uint u0)             ;; Auto-incrementing proposal counter
