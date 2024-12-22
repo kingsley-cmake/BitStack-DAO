@@ -63,3 +63,32 @@
         total-votes: uint                  ;; Total votes cast
     }
 )
+
+;; Vote Records
+;; Tracks individual votes cast by members on proposals
+(define-map votes {proposal-id: uint, voter: principal} 
+    {
+        vote: bool,    ;; true for yes, false for no
+        power: uint    ;; Voting power used for this vote
+    }
+)
+
+;; Private Helper Functions
+
+;; Checks if an address is a DAO member
+(define-private (is-member (address principal))
+    (is-some (map-get? members address))
+)
+
+;; Validates member status and returns error if not a member
+(define-private (check-is-member (address principal))
+    (if (is-member address)
+        (ok true)
+        ERR-NOT-MEMBER
+    )
+)
+
+;; Calculates voting power based on staked balance
+(define-private (calculate-voting-power (balance uint))
+    (/ balance u1000000)
+)
